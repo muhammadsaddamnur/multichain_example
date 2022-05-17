@@ -107,7 +107,9 @@ class DialogBodyToken extends StatelessWidget {
                   onTap: () async {
                     context.read<RoutersBloc>().add(SelectedFromToken(index));
                     context.read<RoutersBloc>().add(GetServerInfo(
-                        state.selectedFromChainsId!['chainId'], 'all'));
+                        int.parse(
+                            state.selectedFromChainsId!['chainId'].toString()),
+                        'all'));
                     Navigator.pop(context);
                   },
                 );

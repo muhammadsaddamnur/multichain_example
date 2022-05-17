@@ -12,6 +12,8 @@ class RoutersMain extends RoutersState {
   final Map<String, dynamic>? selectedToChain;
   final List<Map<String, dynamic>>? listToChain;
   final double price;
+  final String? fromLiquidity;
+  final String? toLiquidity;
 
   RoutersMain({
     this.selectedFromChainsId,
@@ -20,5 +22,7 @@ class RoutersMain extends RoutersState {
     this.selectedToChain,
     this.listToChain,
     required this.price,
+    required this.fromLiquidity,
+    required this.toLiquidity,
   });
 }

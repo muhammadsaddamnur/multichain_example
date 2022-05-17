@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/routers_bloc.dart';
+import '../models/chain_id.dart';
 import 'multi_dropdown.dart';
 
 class DialogFromChain extends StatelessWidget {
@@ -12,11 +13,16 @@ class DialogFromChain extends StatelessWidget {
     return BlocBuilder<RoutersBloc, RoutersState>(
       builder: (context, state) {
         if (state is RoutersMain) {
+          var bloc = context.read<RoutersBloc>();
+
           return MultiDropdown(
-            title: '${state.selectedFromChainsId!['name']}',
-            image: state.selectedFromChainsId == null
-                ? ''
-                : state.selectedFromChainsId!['image'],
+            title:
+                '${ChainId.returnChain(state.selectedFromChainsId!['chainId'].toString())['name']}',
+            // image: state.selectedFromChainsId == null
+            //     ? ''
+            //     : bloc.listFromChains.toList().firstWhere((element) =>
+            //         element['chainId'].toString() ==
+            //         state.selectedFromChainsId!['chainId'])['logoUrl'],
             onTap: () {
               showDialog(
                 context: context,
@@ -73,10 +79,10 @@ class DialogBodyChain extends StatelessWidget {
               return ListTile(
                 leading: CircleAvatar(
                   backgroundImage:
-                      NetworkImage('${bloc.listFromChains[index]['image']}'),
+                      NetworkImage('${bloc.listFromChains[index]['logoUrl']}'),
                 ),
                 title: Text(
-                  '${bloc.listFromChains[index]['name']}',
+                  '${bloc.listFromChains[index]['anyToken']['name']}',
                   maxLines: 2,
                   style: const TextStyle(
                     color: Colors.white,
@@ -86,7 +92,7 @@ class DialogBodyChain extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  '${bloc.listFromChains[index]['name']}',
+                  '${bloc.listFromChains[index]['anyToken']['name']}',
                   maxLines: 2,
                   style: const TextStyle(
                     color: Colors.white,

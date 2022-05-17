@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:multichain_example/models/chain_id.dart';
 import 'package:multichain_example/widgets/dialog_from_chain.dart';
 import 'package:multichain_example/widgets/dialog_from_token.dart';
 import 'package:multichain_example/widgets/multi_dropdown.dart';
 
 import 'bloc/routers_bloc.dart';
+import 'services/route_abi.dart';
 import 'widgets/dialog_to_chain.dart';
 import 'widgets/multi_textfield.dart';
 
@@ -69,6 +71,20 @@ class _RouterMultichainState extends State<RouterMultichain> {
                       DialogFromChain(),
                     ],
                   ),
+                  BlocBuilder<RoutersBloc, RoutersState>(
+                    builder: (context, state) {
+                      if (state is RoutersMain) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            (state.fromLiquidity ?? '').toString(),
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        );
+                      }
+                      return Container();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -118,7 +134,7 @@ class _RouterMultichainState extends State<RouterMultichain> {
                             style: TextStyle(color: Colors.white, fontSize: 20),
                           );
                         }
-                        return Text(
+                        return SelectableText(
                           '0',
                           style: TextStyle(color: Colors.white, fontSize: 20),
                         );
@@ -133,6 +149,20 @@ class _RouterMultichainState extends State<RouterMultichain> {
                       DialogFromToken(),
                       DialogToChain(),
                     ],
+                  ),
+                  BlocBuilder<RoutersBloc, RoutersState>(
+                    builder: (context, state) {
+                      if (state is RoutersMain) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            (state.toLiquidity ?? '').toString(),
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        );
+                      }
+                      return Container();
+                    },
                   ),
                 ],
               ),
@@ -155,27 +185,27 @@ class _RouterMultichainState extends State<RouterMultichain> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            SelectableText(
                               '- Crosschain Fee is ${value['SwapFeeRatePerMillion']}%, Minimum Crosschain Fee is ${value['MinimumSwapFee']} ${state.selectedFromToken!['symbol']}, Maximum Crosschain Fee is ${value['MaximumSwapFee']} ${state.selectedFromToken!['symbol']}',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            Text(
+                            SelectableText(
                               '- Minimum Crosschain Amount is ${value['MinimumSwap']} ${state.selectedFromToken!['symbol']}',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            Text(
+                            SelectableText(
                               '- Maximum Crosschain Amount is ${value['MaximumSwap']} ${state.selectedFromToken!['symbol']}',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            Text(
+                            SelectableText(
                               '- Estimated Time of Crosschain Arrival is 10-30 min',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            Text(
+                            SelectableText(
                               '- Crosschain amount larger than ${value['BigValueThreshold']} ${state.selectedFromToken!['symbol']} could take up to 12 hours',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
@@ -208,26 +238,57 @@ class _RouterMultichainState extends State<RouterMultichain> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            SelectableText(
                               'Decimal : ${value['anyToken']['decimals']}\n\n'
-                              'anySwapOutUnderlying(\n${value['anyToken']['address']},'
+                              'anySwapOutUnderlying(\n${state.selectedFromChainsId!['anyToken']['address']},'
                               '\ntoAddress,'
                               '\n${BigInt.from(state.price * double.parse('1${List<String>.generate(value['anyToken']['decimals'], (counter) => "0").join()}')).toString()},'
                               '\n${state.selectedToChain!.keys.first}\n)',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
-                            SizedBox(
+                            const SizedBox(
                               height: 10,
                             ),
-                            Text(
-                              'anySwapOut(\n${value['anyToken']['address']},'
+                            SelectableText(
+                              'anySwapOut(\n${state.selectedFromChainsId!['anyToken']['address']},'
                               '\ntoAddress,'
                               '\n${BigInt.from(state.price * double.parse('1${List<String>.generate(value['anyToken']['decimals'], (counter) => "0").join()}')).toString()},'
                               '\n${state.selectedToChain!.keys.first}\n)',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 12),
                             ),
+                            // ElevatedButton(
+                            //   onPressed: () async {
+                            //     /// liquidity yg atas
+                            //     await RouteAbi().getBalance(
+                            //       ChainId.returnChain(state
+                            //           .selectedFromChainsId!['chainId']
+                            //           .toString())['rpc'][0],
+                            //       state.selectedFromChainsId!['address'],
+                            //       state.selectedFromChainsId!['anyToken']
+                            //           ['address'],
+                            //       value['anyToken']['decimals'],
+                            //     );
+
+                            //     /// liquidity yg bawah
+                            //     await RouteAbi().getBalance(
+                            //       ChainId.returnChain(state
+                            //           .selectedToChain!.keys.first
+                            //           .toString())['rpc'][0],
+                            //       state
+                            //           .selectedToChain!.values.first['address'],
+
+                            //       /// destination
+                            //       state.selectedToChain!.values
+                            //           .first['anyToken']['address'],
+
+                            //       /// destination
+                            //       value['anyToken']['decimals'],
+                            //     );
+                            //   },
+                            //   child: Text('check liquidity'),
+                            // ),
                           ],
                         ),
                       ),

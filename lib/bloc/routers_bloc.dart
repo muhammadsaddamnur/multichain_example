@@ -6,42 +6,48 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+import '../models/chain_id.dart';
+import '../services/route_abi.dart';
+
 part 'routers_event.dart';
 part 'routers_state.dart';
 
 class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
+  String fromLiquidity = '';
+  String toLiquidity = '';
   double price = 0;
 
   Map<String, dynamic>? selectedFromChainsId;
+
   List<Map<String, dynamic>> listFromChains = [
     {
-      'name': 'Ethereum',
+      'anyToken': {'name': 'Ethereum'},
       'chainId': 1,
-      'image':
+      'logoUrl':
           'https://assets.coingecko.com/coins/images/279/large/ethereum.png'
     },
     {
-      'name': 'Polygon',
+      'anyToken': {'name': 'Polygon'},
       'chainId': 137,
-      'image':
+      'logoUrl':
           'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png'
     },
     {
-      'name': 'BSC',
+      'anyToken': {'name': 'BSC'},
       'chainId': 56,
-      'image':
+      'logoUrl':
           'https://chainlist.org/_next/image?url=https%3A%2F%2Fdefillama.com%2Fchain-icons%2Frsz_binance.jpg&w=32&q=75'
     },
     {
-      'name': 'Avalanche',
+      'anyToken': {'name': 'Avalanche'},
       'chainId': 43114,
-      'image':
+      'logoUrl':
           'https://chainlist.org/_next/image?url=https%3A%2F%2Fdefillama.com%2Fchain-icons%2Frsz_avalanche.jpg&w=32&q=75'
     },
     {
-      'name': 'Velas',
+      'anyToken': {'name': 'Velas'},
       'chainId': 106,
-      'image':
+      'logoUrl':
           'https://chainlist.org/_next/image?url=https%3A%2F%2Fdefillama.com%2Fchain-icons%2Frsz_velas.jpg&w=32&q=75'
     },
   ];
@@ -62,6 +68,7 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
       listTokens = [];
       listToChain = [];
       price = 0;
+
       emit(RoutersMain(
         tokens: listTokens,
         selectedFromToken: selectedFromToken,
@@ -69,12 +76,24 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
         selectedToChain: selectedToChainsId,
         listToChain: listToChain,
         price: price,
+        fromLiquidity: fromLiquidity,
+        toLiquidity: toLiquidity,
       ));
     });
 
     on<SelectedToChain>((event, emit) async {
       selectedToChainsId = listToChain[event.index];
       price = 0;
+
+      /// liquidity yg bawah
+      toLiquidity = await RouteAbi().getBalance(
+        ChainId.returnChain(selectedToChainsId!.keys.first.toString())['rpc']
+            [0],
+        selectedToChainsId!.values.first['address'], // destination
+        selectedToChainsId!.values.first['anyToken']['address'], // destination
+        selectedToChainsId!.values.first['anyToken']['decimals'],
+      );
+
       emit(RoutersMain(
         tokens: listTokens,
         selectedFromToken: selectedFromToken,
@@ -82,6 +101,8 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
         selectedToChain: selectedToChainsId,
         listToChain: listToChain,
         price: price,
+        fromLiquidity: fromLiquidity,
+        toLiquidity: toLiquidity,
       ));
     });
 
@@ -90,6 +111,7 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
       selectedToChainsId = null;
       listToChain = [];
       price = 0;
+
       emit(RoutersMain(
         tokens: listTokens,
         selectedFromToken: selectedFromToken,
@@ -97,10 +119,13 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
         selectedToChain: selectedToChainsId,
         listToChain: listToChain,
         price: price,
+        fromLiquidity: fromLiquidity,
+        toLiquidity: toLiquidity,
       ));
     });
 
     on<SetPrice>((event, emit) async {
+      /// gak usah dipotong
       price = event.price -
           double.parse(selectedToChainsId == null
               ? '0'
@@ -124,6 +149,8 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
         selectedToChain: selectedToChainsId,
         listToChain: listToChain,
         price: price,
+        fromLiquidity: fromLiquidity,
+        toLiquidity: toLiquidity,
       ));
     });
 
@@ -168,6 +195,8 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
           selectedToChain: selectedToChainsId,
           listToChain: listToChain,
           price: price,
+          fromLiquidity: fromLiquidity,
+          toLiquidity: toLiquidity,
         ));
         print('done');
       } catch (e) {
@@ -220,6 +249,17 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
           listChain1.add({k: v});
         });
 
+        selectedFromChainsId = listTokens1.first;
+
+        /// liquidity yg atas
+        fromLiquidity = await RouteAbi().getBalance(
+          ChainId.returnChain(
+              selectedFromChainsId!['chainId'].toString())['rpc'][0],
+          selectedFromChainsId!['address'], // destination
+          selectedFromChainsId!['anyToken']['address'], // destination
+          selectedFromChainsId!['anyToken']['decimals'],
+        );
+
         listToChain = listChain1;
         emit(RoutersMain(
           tokens: listTokens,
@@ -228,6 +268,8 @@ class RoutersBloc extends Bloc<RoutersEvent, RoutersState> {
           selectedToChain: selectedToChainsId,
           listToChain: listToChain,
           price: price,
+          fromLiquidity: fromLiquidity,
+          toLiquidity: toLiquidity,
         ));
         // await result.forEach((k, v) {
         //   if (['USDT', 'USDC'].contains(selectedFromToken!['symbol'])) {
